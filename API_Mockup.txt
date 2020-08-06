@@ -1,0 +1,217 @@
+1- Post schedule for doctor
+API_URL: /api/users/doctor/schedule/
+Request_Body : Array of Objects
+ [{
+        "doc_id"       :  "86",
+        "start_time"   :  "10:00:00 PM",
+        "end_time"     :  "10:30:00 PM",
+        "slot_duration":  "15",
+        "date"         : "2020-06-13"
+
+    },{
+        "doc_id"       :  "86",
+        "start_time"   :  "02:00:00 AM",
+        "end_time"     :  "02:30:00 AM",
+        "slot_duration":  "15",
+        "date"         : "2020-06-16"
+
+    },{
+        "doc_id"       :  "86",
+        "start_time"   :  "02:00:00 AM",
+        "end_time"     :  "02:30:00 AM",
+        "slot_duration":  "15",
+        "date"         : "2020-06-17"
+
+    },{
+        "doc_id"       :  "86",
+        "start_time"   :  "02:00:00 AM",
+        "end_time"     :  "02:30:00 AM",
+        "slot_duration":  "15",
+        "date"         : "2020-06-18"
+
+    }]
+ Results : Array of posting Appointments response including each inserted schedule id as insertId
+ Like :[
+           {
+               "fieldCount": 0,
+               "affectedRows": 1,
+               "insertId": 43,
+               "serverStatus": 2,
+               "warningCount": 0,
+               "message": "",
+               "protocol41": true,
+               "changedRows": 0
+           },
+           {
+               "fieldCount": 0,
+               "affectedRows": 1,
+               "insertId": 44,
+               "serverStatus": 2,
+               "warningCount": 0,
+               "message": "",
+               "protocol41": true,
+               "changedRows": 0
+           },
+       ]
+
+
+
+ 2-Get ALL doctor schedule
+ API_URL : /api/users/doctor/schedule/:doc_id
+ Needed Data: doctor id should be inserted in Api request url
+ Results : Array of Schedules
+ Like :
+ [
+        {
+            "id": 1,
+            "doc_id": 86,
+            "start_time": "2020-06-10 02:00:00 PM",
+            "end_time": "2020-06-10 05:00:00 PM",
+            "slot_duration": 15,
+            "year": 2020,
+            "month": 6,
+            "day": 10
+        },
+        {
+            "id": 2,
+            "doc_id": 86,
+            "start_time": "2020-06-11 02:00:00 PM",
+            "end_time": "2020-06-11 05:00:00 PM",
+            "slot_duration": 15,
+            "year": 2020,
+            "month": 6,
+            "day": 11
+        },
+        {
+            "id": 3,
+            "doc_id": 86,
+            "start_time": "2020-06-11 02:00:00 PM",
+            "end_time": "2020-06-11 05:00:00 PM",
+            "slot_duration": 15,
+            "year": 2020,
+            "month": 6,
+            "day": 11
+        },
+ ]
+
+3-Get ALL doctor schedule by date
+
+API_URL By Year : /api/users/doctor/schedule/:doc_id/:year
+API_URL By Year/month : /api/users/doctor/schedule/:doc_id/:year/:month
+API_URL By Year/month/day : /api/users/doctor/schedule/:doc_id/:year/:month/:day
+
+Needed Data: doctor id should be inserted in Api request url + date
+Results :  Array of Schedules
+Like :
+[
+    {
+        "id": 1,
+        "doc_id": 86,
+        "start_time": "2020-06-01 02:00:00 PM",
+        "end_time": "2020-06-01 05:00:00 PM",
+        "slot_duration": 15,
+        "year": 2020,
+        "month": 6,
+        "day": 1
+    },
+    {
+        "id": 2,
+        "doc_id": 86,
+        "start_time": "2020-06-10 02:00:00 PM",
+        "end_time": "2020-06-10 05:00:00 PM",
+        "slot_duration": 15,
+        "year": 2020,
+        "month": 6,
+        "day": 10
+    }
+]
+
+4-Get doctor Certain Schedule slots
+API-ULR:/api/users/doctor/slots/:schedule_id
+Required Data : schedule_id
+Results: Array of Slots
+Like :
+[
+    {
+        "id": 1,
+        "schedule_id": 1,
+        "start_time": "02:00 PM",
+        "end_time": "02:15 PM",
+        "patient_id": null,
+        "booked": {
+            "type": "Buffer",
+            "data": [
+                0
+            ]
+        }
+    },
+    {
+        "id": 2,
+        "schedule_id": 1,
+        "start_time": "02:30 PM",
+        "end_time": "02:45 PM",
+        "patient_id": null,
+        "booked": {
+            "type": "Buffer",
+            "data": [
+                0
+            ]
+        }
+    },
+    {
+        "id": 3,
+        "schedule_id": 1,
+        "start_time": "03:00 PM",
+        "end_time": "03:15 PM",
+        "patient_id": null,
+        "booked": {
+            "type": "Buffer",
+            "data": [
+                0
+            ]
+        }
+    },
+    {
+        "id": 4,
+        "schedule_id": 1,
+        "start_time": "03:30 PM",
+        "end_time": "03:45 PM",
+        "patient_id": null,
+        "booked": {
+            "type": "Buffer",
+            "data": [
+                0
+            ]
+        }
+    },
+    {
+        "id": 5,
+        "schedule_id": 1,
+        "start_time": "04:00 PM",
+        "end_time": "04:15 PM",
+        "patient_id": null,
+        "booked": {
+            "type": "Buffer",
+            "data": [
+                0
+            ]
+        }
+    },
+    {
+        "id": 6,
+        "schedule_id": 1,
+        "start_time": "04:30 PM",
+        "end_time": "04:45 PM",
+        "patient_id": null,
+        "booked": {
+            "type": "Buffer",
+            "data": [
+                0
+            ]
+        }
+    }
+]
+
+
+
+
