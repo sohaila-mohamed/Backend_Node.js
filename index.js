@@ -426,7 +426,11 @@ async function createSchedule(body){
         console.log("for each index ",i);
         const promise=await postSchedule(schedule);
         console.log("post schedule promise",promise);
-        await postScheduleResults.push(promise);
+        const result={
+            date:body[i].date+" from "+body[i].start_time+" to "+body[i].end_time,
+            id:promise.insertId
+        };
+        await postScheduleResults.push(result);
         if(i===body.length-1){
             console.log("resolving////////////////////////");
             await resolve(postScheduleResults);
@@ -511,22 +515,31 @@ async function postSlots(schedule_id,slots){
 
 }
 ///////////////////////////////////////////////////////////////////////////////////
-//////////get doctor schedule
+/////////get doctor appointments
 app.get('/api/users/doctor/schedule/:doc_id',(req,res)=>{
 
-      query("SELECT  * FROM user.schedule  where  doc_id="+parseInt(req.params.doc_id)).then(
-          async (rows)=>{
-              console.log("returned schedule",rows);
-             await res.send(rows);
+    query("SELECT  * FROM user.schedule  where  doc_id="+parseInt(req.params.doc_id)).then(
+        async (rows)=>{
+            let results=[];
+            console.log("returned schedule",rows);
+            rows.forEach(schedule=>{
+                const result={
+                    id:schedule.id,
+                    date:schedule.day+"-"+schedule.month+"-"+schedule.year,
+                    start_time:schedule.start_time,
+                    end_time:schedule.end_time,
+                    slot_duration: schedule.slot_duration
+                };
+                results.push(result);
+                console.log("results",results);});
+            await res.send(results);
+        }
+    ).catch((err)=>{
+        console.log("Error in query",err);
 
 
-          }
-      ).catch((err)=>{
-          console.log("Error in query",err);
 
-
-
-      })
+    })
 
 });
 ///////////////////////////////////////////////////////////////
@@ -571,8 +584,14 @@ app.get('/api/users/doctor/schedule/:doc_id/:year/:month',(req,res)=>{
 });
 ///////////////////////////////////////////////////////////////
 //////////get doctor schedule by year and month and day
-app.get('/api/users/doctor/schedule/:doc_id/:year/:month/:day',(req,res)=>{
-    query("SELECT  * FROM user.schedule  where  doc_id = "+parseInt(req.params.doc_id)+" and year = "+parseInt(req.params.year)+" and month = "+parseInt(req.params.month)+" and day = "+parseInt(req.params.day)).then(
+app.get('/api/users/doctor/day/schedule/:doc_id',(req,res)=>{
+    const year=moment(req.body.date,'YYYY-MM-DD').format('YYYY');
+    const month=moment(req.body.date,'YYYY-MM-DD').format('MM');
+    const day=moment(req.body.date,'YYYY-MM-DD').format('DD');
+    const doctor_id=parseInt(req.params.doc_id);
+    const sql="SELECT  * FROM user.schedule  where  doc_id = "+doctor_id+" and year = "+year+" and month = "+month+" and day = "+day;
+    console.log("year",year,"month",month,"day",day);
+    query(sql).then(
         async (rows)=>{
             console.log("returned schedule",rows);
             await res.send(rows);
@@ -606,6 +625,63 @@ app.get('/api/users/doctor/slots/:schedule_id',(req,res)=>{
 
 });
 ///////////////////////////////////////////////////////////////
+//////////get patient schedule
+app.get('/api/users/patient/schedule/:patient_id',(req,res)=>{
+    const sql="SELECT Appointments.id, Appointments.patient_id, Appointments.start_time,Appointments.end_time," +
+        "Appointments.schedule_id,schedule.year,schedule.month,schedule.day,schedule.slot_duration,schedule.doc_id " +
+        "FROM ((user.Appointments INNER JOIN user.schedule ON schedule.id = Appointments.schedule_id))" +
+        "where patient_id= ";
+
+    query(sql+req.params.patient_id).then(
+        async (rows)=>{
+            let results=[];
+            console.log("returned schedule",rows);
+            rows.forEach(Appointment=>{
+                const result={
+                    appointment_id:Appointment.id,
+                    schedule_id:Appointment.schedule_id,
+                    patient_id:Appointment.patient_id,
+                    doctor_id:Appointment.doc_id,
+                    date:Appointment.day+"-"+Appointment.month+"-"+Appointment.year,
+                    start_time:Appointment.start_time,
+                    end_time:Appointment.end_time,
+                    slot_duration: Appointment.slot_duration
+                };
+                results.push(result);
+                console.log("results",results);});
+            await res.send(results);
+        }
+    ).catch((err)=>{
+        console.log("Error in query",err);
+
+
+
+    })
+
+});
+////////////////////////////////////////////////
+/// patient book appointment
+app.put('/api/user/patient/appointment/:patient_id',(req,res)=>{
+    const slot_id= parseInt(req.body.slot_id);
+    const patient_id=parseInt(req.params.patient_id);
+    console.log("req.body",req.body);
+    console.log("id ",slot_id);
+    const sql= "UPDATE user.Appointments Set  booked = ?, patient_id= ?  Where id = ?";
+    query(sql,[1,patient_id,slot_id]).then(
+        async (response)=>{
+            console.log("returned response from booking appointment",response.changedRows);
+            await res.send(response);
+
+        }).catch((err)=>{
+        console.log("Error in query",err);
+        res.send(err);
+
+
+
+    });
+
+
+});
 
 // time setting
 /**

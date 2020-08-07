@@ -1,3 +1,4 @@
+node port : http://ec2-3-87-1-35.compute-1.amazonaws.com:3000
 1- Post schedule for doctor
 API_URL: /api/users/doctor/schedule/
 Request_Body : Array of Objects
@@ -30,28 +31,21 @@ Request_Body : Array of Objects
         "date"         : "2020-06-18"
 
     }]
- Results : Array of posting Appointments response including each inserted schedule id as insertId
+ Results : Array of posting Appointments response including each inserted schedule id as (id)
+ and schedule date as (date)
  Like :[
-           {
-               "fieldCount": 0,
-               "affectedRows": 1,
-               "insertId": 43,
-               "serverStatus": 2,
-               "warningCount": 0,
-               "message": "",
-               "protocol41": true,
-               "changedRows": 0
-           },
-           {
-               "fieldCount": 0,
-               "affectedRows": 1,
-               "insertId": 44,
-               "serverStatus": 2,
-               "warningCount": 0,
-               "message": "",
-               "protocol41": true,
-               "changedRows": 0
-           },
+            {
+                   "date": "2021-06-13 from 10:00:00 PM to 10:30:00 PM",
+                   "id": 143
+               },
+               {
+                   "date": "2020-06-16 from 02:00:00 AM to 02:30:00 AM",
+                   "id": 144
+               },
+               {
+                   "date": "2020-06-17 from 02:00:00 AM to 02:30:00 AM",
+                   "id": 145
+               },
        ]
 
 
@@ -62,68 +56,46 @@ Request_Body : Array of Objects
  Results : Array of Schedules
  Like :
  [
+   {
+           "id": 8,
+           "date": "11-6-2020",
+           "start_time": "11:00:00 AM",
+           "end_time": "01:00:00 PM",
+           "slot_duration": 15
+       },
         {
-            "id": 1,
-            "doc_id": 86,
-            "start_time": "2020-06-10 02:00:00 PM",
-            "end_time": "2020-06-10 05:00:00 PM",
-            "slot_duration": 15,
-            "year": 2020,
-            "month": 6,
-            "day": 10
-        },
-        {
-            "id": 2,
-            "doc_id": 86,
-            "start_time": "2020-06-11 02:00:00 PM",
-            "end_time": "2020-06-11 05:00:00 PM",
-            "slot_duration": 15,
-            "year": 2020,
-            "month": 6,
-            "day": 11
-        },
-        {
-            "id": 3,
-            "doc_id": 86,
-            "start_time": "2020-06-11 02:00:00 PM",
-            "end_time": "2020-06-11 05:00:00 PM",
-            "slot_duration": 15,
-            "year": 2020,
-            "month": 6,
-            "day": 11
-        },
+               "id": 9,
+               "date": "12-6-2020",
+               "start_time": "10:00:00 AM",
+               "end_time": "04:00:00 PM",
+               "slot_duration": 15
+           },
  ]
 
-3-Get ALL doctor schedule by date
+3-Get ALL doctor schedule by specific date
+API_URL By Year/month/day : /api/users/doctor/day/schedule/:doc_id
 
-API_URL By Year : /api/users/doctor/schedule/:doc_id/:year
-API_URL By Year/month : /api/users/doctor/schedule/:doc_id/:year/:month
-API_URL By Year/month/day : /api/users/doctor/schedule/:doc_id/:year/:month/:day
-
-Needed Data: doctor id should be inserted in Api request url + date
+Needed Data: doctor id should be inserted in Api request url and
+request body {
+                 "date":"2020-06-10"
+             }
 Results :  Array of Schedules
 Like :
 [
     {
-        "id": 1,
-        "doc_id": 86,
-        "start_time": "2020-06-01 02:00:00 PM",
-        "end_time": "2020-06-01 05:00:00 PM",
-        "slot_duration": 15,
-        "year": 2020,
-        "month": 6,
-        "day": 1
-    },
-    {
-        "id": 2,
-        "doc_id": 86,
-        "start_time": "2020-06-10 02:00:00 PM",
-        "end_time": "2020-06-10 05:00:00 PM",
-        "slot_duration": 15,
-        "year": 2020,
-        "month": 6,
-        "day": 10
-    }
+               "id": 8,
+               "date": "11-6-2020",
+               "start_time": "11:00:00 AM",
+               "end_time": "01:00:00 PM",
+               "slot_duration": 15
+           },
+            {
+                   "id": 9,
+                   "date": "12-6-2020",
+                   "start_time": "10:00:00 AM",
+                   "end_time": "04:00:00 PM",
+                   "slot_duration": 15
+               },
 ]
 
 4-Get doctor Certain Schedule slots
@@ -211,6 +183,45 @@ Like :
         }
     }
 ]
+
+
+5-Get patient appointments
+API_URL: /api/users/patient/schedule/:patient_id
+Required date : patient_id in request parameters(inserted in url)
+results:array of slots
+like:
+[
+    {
+        "appointment_id": 1,
+        "schedule_id": 1,
+        "patient_id": 87,
+        "doctor_id": 86,
+        "date": "10-6-2020",
+        "start_time": "02:00 PM",
+        "end_time": "02:15 PM",
+        "slot_duration": 15
+    }
+]
+
+6-Patient Book appointment (put)
+API-URL :/api/user/patient/appointment/:patient_id
+required data: patient id (inserted in api url) and slot_id inserted in request body
+request_body:{
+                 "slot_id":"1"
+             }
+results :
+{
+    "fieldCount": 0,
+    "affectedRows": 1,
+    "insertId": 0,
+    "serverStatus": 2,
+    "warningCount": 0,
+    "message": "(Rows matched: 1  Changed: 1  Warnings: 0",
+    "protocol41": true,
+    "changedRows": 1
+}
+
+
 
 
 
