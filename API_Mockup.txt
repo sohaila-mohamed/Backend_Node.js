@@ -220,9 +220,73 @@ results :
     "protocol41": true,
     "changedRows": 1
 }
+7-Get doctor free slots for specific day
+API-URL :/api/users/doctor/day/slots/:doctor_id
+required data: doctor id (inserted in api url) and date inserted in request body
+request_body:{
+                 "date":"2020-06-11"
+             }
+results: array of slots
+[
+ {
+        "appointment_id": 3,
+        "schedule_id": 1,
+        "doctor_id": 86,
+        "date": "2010-06-20",
+        "start_time": "03:00 PM",
+        "end_time": "03:15 PM",
+        "slot_duration": 15
+    },
+    {
+        "appointment_id": 4,
+        "schedule_id": 1,
+        "doctor_id": 86,
+        "date": "2010-06-20",
+        "start_time": "03:30 PM",
+        "end_time": "03:45 PM",
+        "slot_duration": 15
+    },]
 
+8-Get doctor free slots only
+API-URL :/api/users/doctor/free/slots/:doc_id
+required data: doctor id (inserted in api url)
+results:
+[
+    {
+        "slot_id": 3,
+        "schedule_id": 1,
+        "doctor_id": 86,
+        "date": "2020-06-10",
+        "start_time": "03:00 PM",
+        "end_time": "03:15 PM",
+        "slot_duration": 15
+    },
+    {
+        "slot_id": 4,
+        "schedule_id": 1,
+        "doctor_id": 86,
+        "date": "2020-06-10",
+        "start_time": "03:30 PM",
+        "end_time": "03:45 PM",
+        "slot_duration": 15
+    },
+    ]
 
+ Consultations  APIs
 
+ 1-Create thread for every consultation (post thread)
+ 2-Get specific thread messages
+ 3-Update Thread Read Status
+ 4-Get inbox and send list of consultations
+ 5-Send reply on specific thread includes (text)
+ 6-Send reply on specific thread includes (media files ) extends uploading
+  Media files to amazon s3
 
+ Appointments APIs
+
+ 1-Doctor Post schedule extends splitting appointment duration into small slots
+ 2-Doctor/Patient Get schedule of specific day,month,or year
+ 3-Get doctor free slots of specific day schedule
+ 4-Patient Book appointment extends updating doctor schedule status.
 
 

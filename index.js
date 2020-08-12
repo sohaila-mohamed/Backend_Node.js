@@ -10,6 +10,8 @@ const multer = require('multer');
 const AWS = require('aws-sdk');
 const env = require('./S3_Config');
 const moment = require("moment");
+let OpenTok = require('opentok'),
+    opentok = new OpenTok("46767002", "d5d5933459840ce06d8a9b9abceb541bcb266856");
 
 var storage = multer.memoryStorage();
 let upload = multer({storage: storage});
@@ -109,7 +111,7 @@ app.get('/api/users/vitals/:id',(req,res)=>{
 });
 
 
-
+//////////////////////post vitals
 app.post('/api/users/vitals/:id',(req,res)=>{
 
 const vitals={
@@ -127,7 +129,7 @@ const vitals={
 console.log("vitals",vitals);
 DB.connection.query( `INSERT INTO user.vitals SET ?`,vitals,(error,results)=>{
     if(!!error){
-        console.log("Error in query");
+        console.log("Error in query",error);
         return;
     }
     console.log("successful Query");
@@ -153,6 +155,8 @@ DB.connection.query( `UPDATE user.vitals Set ${req.body.vital_Name} = ? Where id
 
 });
 ///////////////////////////////////////////////////////////////
+
+
 //Post Thread
 app.post('/api/users/threads/:sender_id',(req,res)=>{
 
@@ -515,23 +519,24 @@ async function postSlots(schedule_id,slots){
 
 }
 ///////////////////////////////////////////////////////////////////////////////////
-/////////get doctor appointments
+/////////get doctor schedule
 app.get('/api/users/doctor/schedule/:doc_id',(req,res)=>{
 
     query("SELECT  * FROM user.schedule  where  doc_id="+parseInt(req.params.doc_id)).then(
         async (rows)=>{
             let results=[];
-            console.log("returned schedule",rows);
+            // console.log("returned schedule",rows);
             rows.forEach(schedule=>{
                 const result={
                     id:schedule.id,
-                    date:schedule.day+"-"+schedule.month+"-"+schedule.year,
+                    date:moment((schedule.year+"-"+schedule.month+"-"+schedule.day),'YYYY-MM-DD').format('YYYY-MM-DD'),
                     start_time:schedule.start_time,
                     end_time:schedule.end_time,
                     slot_duration: schedule.slot_duration
                 };
                 results.push(result);
-                console.log("results",results);});
+                console.log("results",result.date);
+            });
             await res.send(results);
         }
     ).catch((err)=>{
@@ -553,8 +558,6 @@ app.get('/api/users/doctor/schedule/:doc_id/:year',(req,res)=>{
         async (rows)=>{
             console.log("returned schedule",rows);
             await res.send(rows);
-
-
         }
     ).catch((err)=>{
         console.log("Error in query",err);
@@ -611,7 +614,8 @@ app.get('/api/users/doctor/slots/:schedule_id',(req,res)=>{
 
     query("SELECT  * FROM user.Appointments where  schedule_id = "+parseInt(req.params.schedule_id)).then(
         async (rows)=>{
-            console.log("returned schedule slots",rows);
+            rows.forEach(row=>{console.log("slot booking state",row.booked[0])});
+            // console.log("returned schedule slots",rows);
             await res.send(rows);
 
 
@@ -642,7 +646,7 @@ app.get('/api/users/patient/schedule/:patient_id',(req,res)=>{
                     schedule_id:Appointment.schedule_id,
                     patient_id:Appointment.patient_id,
                     doctor_id:Appointment.doc_id,
-                    date:Appointment.day+"-"+Appointment.month+"-"+Appointment.year,
+                    date:moment((Appointment.year+"-"+Appointment.month+"-"+Appointment.day),'YYYY-MM-DD').format('YYYY-MM-DD'),
                     start_time:Appointment.start_time,
                     end_time:Appointment.end_time,
                     slot_duration: Appointment.slot_duration
@@ -660,6 +664,76 @@ app.get('/api/users/patient/schedule/:patient_id',(req,res)=>{
 
 });
 ////////////////////////////////////////////////
+//////////get doctor free slots by day
+app.post('/api/users/doctor/day/slots/:doctor_id',(req,res)=>{
+    const sql="SELECT Appointments.id, Appointments.start_time,Appointments.end_time," +
+        "Appointments.schedule_id,schedule.year,schedule.month,schedule.day,schedule.slot_duration,schedule.doc_id " +
+        "FROM ((user.Appointments INNER JOIN user.schedule ON schedule.id = Appointments.schedule_id))" +
+        "where schedule.doc_id= ? and Appointments.booked=0 and schedule.year= ? and schedule.month= ? and schedule.day= ? ";
+    const year=moment(req.body.date,'YYYY-MM-DD').format('YYYY');
+    const month=moment(req.body.date,'YYYY-MM-DD').format('MM');
+    const day=moment(req.body.date,'YYYY-MM-DD').format('DD');
+    const doctor_id=parseInt(req.params.doctor_id);
+    query(sql,[doctor_id,year,month,day]).then(
+        async (rows)=>{
+            let results=[];
+            console.log("returned schedule",rows);
+            rows.forEach(Appointment=>{
+                const result={
+                    slot_id:Appointment.id,
+                    schedule_id:Appointment.schedule_id,
+                    doctor_id:Appointment.doc_id,
+                    date:moment((Appointment.year+"-"+Appointment.month+"-"+Appointment.day),'YYYY-MM-DD').format('YYYY-MM-DD'),
+                    start_time:Appointment.start_time,
+                    end_time:Appointment.end_time,
+                    slot_duration: Appointment.slot_duration
+                };
+                results.push(result);
+                console.log("results",results);});
+            await res.send(results);
+        }
+    ).catch((err)=>{
+        console.log("Error in query",err);
+
+
+
+    })
+
+});
+/////////////////////////////////////////////
+//get doctor free slots only
+app.get('/api/users/doctor/free/slots/:doc_id',(req,res)=>{
+    const sql= "SELECT Appointments.id, Appointments.start_time,Appointments.end_time," +
+        "Appointments.schedule_id,schedule.doc_id,schedule.slot_duration,schedule.year,schedule.month,schedule.day FROM ((user.Appointments INNER JOIN user.schedule ON schedule.id = Appointments.schedule_id))" +
+        " where schedule.doc_id = ? and Appointments.booked=0";
+    let results=[];
+    query(sql,parseInt(req.params.doc_id)).then(
+        async (rows)=>{
+            rows.forEach(async Appointment=>{
+                const result={
+                    slot_id:Appointment.id,
+                    schedule_id:Appointment.schedule_id,
+                    doctor_id:Appointment.doc_id,
+                    date:moment((Appointment.year+"-"+Appointment.month+"-"+Appointment.day),'YYYY-MM-DD').format('YYYY-MM-DD'),
+                    start_time:Appointment.start_time,
+                    end_time:Appointment.end_time,
+                    slot_duration: Appointment.slot_duration
+                };
+                results.push(result);
+                console.log("results",results);});
+            await res.send(results);
+                })
+        .catch((err)=>{
+        console.log("Error in query",err);
+
+
+    });
+
+
+        }
+    );
+
+
 /// patient book appointment
 app.put('/api/user/patient/appointment/:patient_id',(req,res)=>{
     const slot_id= parseInt(req.body.slot_id);
@@ -680,6 +754,35 @@ app.put('/api/user/patient/appointment/:patient_id',(req,res)=>{
 
     });
 
+
+});
+//////////////////////////////////////////////////////////////////////////////////////////
+///Online Sessions
+
+// so you can get or extract the request body parameters
+app.use(express.json());
+
+
+app.post('/token', (req, res) => {
+    const sessionId = req.body.sessionId;
+    const expireTime = req.body.expireTime;
+
+    console.log(sessionId, expireTime);
+
+    if(sessionId && expireTime)
+    {
+
+        var tokenOptions = {};
+        tokenOptions.role = "publisher";
+        tokenOptions.expireTime = (new Date().getTime() / 1000)+(expireTime*60);
+
+        // Generate a token.
+        res.json({"token":opentok.generateToken(sessionId, tokenOptions)});
+    }
+    else
+    {
+        res.status(404).send("Please Provide Session Id and expiration Time");
+    }
 
 });
 
@@ -716,6 +819,7 @@ function GetDate(){
 
 }
 function checkZero(data){
+    console.log("Check zero");
     console.log("data",data,'length',data.length);
     if(data.length === 1){
         data = "0" + data;
